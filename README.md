@@ -35,7 +35,7 @@ That's pretty much it.
 ```bash
 transliterati file1.txt file2.txt 200
 ```
-Where 200 is the minimum vocab size, if you're really sure you know what you're doing.
+Where 200 is the minimum vocab size, if you're really sure you know what you're doing. I think you might have to clone and build it from source since I just learned Rust a week ago and I'm not confident enough with cargo yet.
 # Tips:
 * If you have a long text, chunk it evenly into pieces if you know where the boundaries are. The longer the chunks are, the longer it will take. The number of chunks doesn't really matter. Make sure there aren't any blank lines.
 * Play around with the vocab size if you're getting weird results
