@@ -31,7 +31,7 @@ It seems to be a matter of:
 * Is the orthography between the two transliterated pairs is a 1:1 match? Russian is close to perfect even for as little as 14 words, Japanese is only 75% accurate even with 1000 because of the mix of writing systems.
 * Are they completely different writing systems? If you pair a logographic language like Chinese with phonetic pinyin, you will need a godawful amount of data.
 That's pretty much it.
-# how do I use it?
+## how do I use it?
 ```bash
 transliterati file1.txt file2.txt 200
 ```
