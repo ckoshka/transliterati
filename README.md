@@ -24,7 +24,7 @@ And it gives you this:
   ...etc
 }
 ```
-Except it works for any transliteration schema in any language, with some exceptions.
+Except it works for any transliteration schema in any language. Here I just used a single paragraph, but the longer, the better. 
 ## how fast is it?
 The longest newline-separated paragraph constrains its speed, since everything is executed in parallel. Generally it takes between 15ms and 600ms.
 ## how accurate is it?
