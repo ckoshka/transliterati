@@ -1,4 +1,6 @@
 # transliterati
+![demo](https://user-images.githubusercontent.com/48640397/151316767-cd46cbea-25c3-43cd-9856-ab89a701dc13.gif)
+
 a universal meta-transliterator that can decipher arbitrary encoding schemas, built in pure Rust
 
 ## what does it do?
