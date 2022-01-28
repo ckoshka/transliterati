@@ -1,5 +1,5 @@
 use rayon::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, BTreeMap};
 //use tokenizers::{Token};
 use std::sync::{Arc, Mutex};
 //mod sift4;
@@ -182,7 +182,7 @@ fn main() {
         max_vocab_size = arg.parse::<usize>().unwrap();
         println!("You have selected {:?} as your vocab size", max_vocab_size);
     } else {
-        max_vocab_size = max_vocab_size as usize;
+        max_vocab_size = max_vocab_size * 1.18 as usize;
         println!("Remember, you can specify a vocab size as your third argument and test out different combinations. I have selected {} automatically", max_vocab_size);
     }
     let now = std::time::Instant::now();
@@ -216,14 +216,14 @@ fn main() {
                 .or_insert(HashMap::new());
             let mut sorted_scores = scores.clone();
             sorted_scores.par_sort_unstable_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-            let positions = sorted_scores.iter().enumerate();
+            let positions = sorted_scores.iter().enumerate().take(10);
             for (i, (token_id, _)) in positions {
                 if let Some(current_score) = merged_scores.get_mut(&token_id) {
                     let number_of_existing_entries =
                         token_counts.entry(token_id.clone()).or_insert(0 as u32);
                     //If there's one already, it should be 1/2 and 1/2. If there's two, the old score should be weighted as 2/3 and the new score as 1/3. number_of_existing_entries/number_of_existing_entries + 1. and 1 / number_of_existing_entries + 1.
                     *current_score =
-                        (((*current_score * number_of_existing_entries.clone() as f64) + i as f64)
+                        (((current_score.sqrt() * number_of_existing_entries.clone() as f64) + i as f64)
                             / (number_of_existing_entries.clone() as f64 + 1.0) as f64)
                             .powi(2);
                     *number_of_existing_entries += 1;
@@ -234,20 +234,30 @@ fn main() {
             }
         }
     }
-    //Now we sort each hashmap by the f64 values, taking the lowest result
-    let mut sorted_merged_hashmap: HashMap<String, String> = HashMap::new();
+    //Now we sort each hashmap by the f64 values, taking the lowest 5 results along with their "likelihood"
+    //uses tokenizer1.id_to_token(token_id.clone() as u32).unwrap(), for each token_id in the top 5
+    println!("Estimating probabilities!");
+    let mut sorted_merged_hashmap: HashMap<String, HashMap<usize, _>> = HashMap::new();
     for (token_id, scores) in merged_hashmap.iter() {
         let mut sorted_scores = scores
             .par_iter()
             .map(|(token_id, score)| (token_id.clone(), *score))
             .collect::<Vec<(i32, f64)>>();
         sorted_scores.par_sort_unstable_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-        let best_token_id = sorted_scores.first().unwrap().0;
+        let best_token_ids = sorted_scores.iter().take(3);
         sorted_merged_hashmap.insert(
             tokenizer1.id_to_token(token_id.clone() as u32).unwrap(),
-            tokenizer2
-                .id_to_token(best_token_id.clone() as u32)
-                .unwrap(),
+            HashMap::from_iter(
+                best_token_ids
+                    .enumerate()
+                    .map(|(indx, (token_id, _))| {
+                        (
+                            indx, tokenizer2.id_to_token(token_id.clone() as u32).unwrap()
+                        )
+                    })
+                    .collect::<Vec<(usize, _)>>()
+                    .into_iter(),
+            ),
         );
     }
     let final_table = json!(sorted_merged_hashmap);
@@ -256,3 +266,4 @@ fn main() {
     println!("{}", pretty_json);
     println!("Took {:?} milliseconds", now.elapsed().as_millis());
 }
+//TODO: make having probabilities optional
